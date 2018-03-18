@@ -1,0 +1,11 @@
+## Interface: 70300
+## Version: 2.0.0
+## Title: Simple Dice 2
+## Authors: Ashlyn
+## SavedVariables: SD2DB
+
+embeds.xml
+
+SimpleDice2_Pre.lua
+SimpleDice2_Options.lua
+SimpleDice2.lua
