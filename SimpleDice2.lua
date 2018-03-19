@@ -108,17 +108,32 @@ function getAttributeOptions()
   end
 end
 
-local function rollCalculation(Skill)
+local function roll()
+  RandomRoll(SD2.db.char.roll["Low"], SD2.db.char.roll["High"])
+end
+
+local function attributeCalculation(Attribute)
+  local string = string.format("Attribute Name: %s. Attribute Value: %s.",SD2.db.char.attribute[Attribute]["Name"],SD2.db.char.attribute[Attribute]["Value"])
+  print(string)
+end
+
+local function skillCalculation(Skill)
   local Attribute = SD2.db.char.skill[Skill]["Attribute"]
   local string = string.format("Skill Name: %s. Mod: %s. Damage: %s. Attribute Name: %s. Attribute Value: %s.",SD2.db.char.skill[Skill]["Name"],SD2.db.char.skill[Skill]["Modifier"],SD2.db.char.skill[Skill]["Damage"],SD2.db.char.attribute[Attribute]["Name"],SD2.db.char.attribute[Attribute]["Value"])
   print(string)
 end
 
 local function attributeGroup(container)
-  local button = SD2GUI:Create("Button")
-  button:SetText("Tab 1 Button")
-  button:SetWidth(150)
-  container:AddChild(button)
+  local attributeButton = {}
+  for i = 2,9 do
+    if SD2.db.char.attribute[i]["Name"] ~= "" then
+      attributeButton[i] = SD2GUI:Create("Button")
+      attributeButton[i]:SetText(SD2.db.char.attribute[i]["Name"])
+      attributeButton[i]:SetWidth(120)
+      attributeButton[i]:SetCallback("OnClick", function() roll() attributeCalculation(i) end)
+      container:AddChild(attributeButton[i])
+    end
+  end
 end
 
 local function skillGroup(container)
@@ -138,7 +153,7 @@ local function skillGroup(container)
       skillButton[i] = SD2GUI:Create("Button")
       skillButton[i]:SetText(SD2.db.char.skill[i]["Name"])
       skillButton[i]:SetWidth(120)
-      skillButton[i]:SetCallback("OnClick", function() rollCalculation(i) end)
+      skillButton[i]:SetCallback("OnClick", function() roll() skillCalculation(i) end)
       container:AddChild(skillButton[i])
     end
   end
@@ -153,7 +168,7 @@ local function SelectGroup(container, event, group)
    end
 end
 
-local function createFrame()
+local function rollPanel()
   if SD2.mainWindow then
     SD2.mainWindow:Hide()
     SD2.mainWindow = nil
@@ -178,9 +193,11 @@ local function createFrame()
     SD2.mainWindow:SetAutoAdjustHeight(true)
     SD2.mainWindow:EnableResize(false)
 
+    tinsert(UISpecialFrames, "Test")
+
     local targetBox = SD2GUI:Create("EditBox")
     targetBox:SetText(SD2.db.char.roll["Target"])
-    targetBox:SetWidth(120)
+    targetBox:SetWidth(140)
     targetBox:SetLabel("Target:")
     targetBox:DisableButton(true)
     targetBox:SetCallback("OnTextChanged", function(info, callback, val) SD2.db.char.roll["Target"] = val end)
@@ -215,7 +232,7 @@ SD2.LDBTable = {
 	type = "data source",
 	text = "Simple Dice 2",
 	icon = "Interface\\Icons\\INV_Misc_Dice_01",
-	OnClick = function() createFrame() end,
+	OnClick = function() rollPanel() end,
 }
 
 local SD2LDB = LibStub("LibDataBroker-1.1"):NewDataObject("Simple Dice 2", SD2.LDBTable)
@@ -226,7 +243,7 @@ function SD2:OnInitialize()
   getSkillOptions() getAttributeOptions()
   self.ConfigRegistry = LibStub("AceConfig-3.0"):RegisterOptionsTable("SD2", self.Options);
   self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SD2", "Simple Dice 2.0");
-  SD2Map:Register("Simple Dice 2", SD2LDB, self.db.profile.minimap)
+  SD2Icon:Register("Simple Dice 2", SD2LDB, self.db.char.minimap);
 end
 
 function SD2:OnEnable()

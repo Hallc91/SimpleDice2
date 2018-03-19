@@ -92,6 +92,35 @@ SD2.Options = {
       order       = 2,
       childGroups = "tree",
       args        = SD2.FullSkillTable
+    },
+
+    options = {
+
+      type        = "group",
+      name        = "Options",
+      cmdHidden   = true,
+      order       = 3,
+      childGroups = "tree",
+      args        = {
+
+          optheader = {
+            name       = "Options",
+            type       = "header",
+            order      = 0
+          },
+
+          dicehigh = {
+             name        = "Hide Minimap Button",
+             desc        = "The upper value for your dice rolls.",
+             type        = "toggle",
+             set         = function(info, val) SD2.db.char.minimap.hide = val; if val then SD2Icon:Hide("Simple Dice 2") else SD2Icon:Show("Simple Dice 2") end; end,
+             get         = function(info) return SD2.db.char.minimap.hide; end,
+             cmdHidden   = true,
+             order       = 1
+           },
+
+      }
+
     }
 
   }
@@ -99,14 +128,11 @@ SD2.Options = {
 }
 
 SD2.Preset = {
+  char = {
 
-  profile = {
     minimap = {
       hide = false,
-    }
-  },
-
-  char = {
+    },
 
     roll = {
       ["Low"] = 1,

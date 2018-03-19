@@ -20,6 +20,7 @@ lib.callbacks = lib.callbacks or LibStub("CallbackHandler-1.0"):New(lib)
 lib.notCreated = lib.notCreated or {}
 lib.tooltip = lib.tooltip or CreateFrame("GameTooltip", "LibDBIconTooltip", UIParent, "GameTooltipTemplate")
 
+
 function lib:IconCallback(event, name, key, value)
 	if lib.objects[name] then
 		if key == "icon" then
@@ -209,6 +210,7 @@ local function createButton(name, object, db)
 		if not db or not db.hide then button:Show()
 		else button:Hide() end
 	end
+
 	lib.callbacks:Fire("LibDBIcon_IconCreated", button, name) -- Fire 'Icon Created' callback
 end
 
@@ -331,4 +333,3 @@ function lib:DisableLibrary()
 		object:Hide()
 	end
 end
-
