@@ -104,7 +104,7 @@ function getAttributeOptions()
           },
 
           attributevalue = {
-            name        = "Attribute Value",
+            name        = "Attribute Modifier",
             desc        = "The modifier value for your attribute.",
             type        = "input",
             set         = function(info, val) SD2.db.char.attribute[i]["Value"] = tonumber(val); end,
@@ -315,9 +315,9 @@ local function rollPanel()
     SD2.mainWindow = nil
   else
 
-    local mainHeight = 160
+    local mainHeight = 240
     local count = 0
-    for i = 1,20 do
+    for i = 6,20 do
       if SD2.db.char.skill[i]["Name"] ~= "" then
         count = count + 1
       end
