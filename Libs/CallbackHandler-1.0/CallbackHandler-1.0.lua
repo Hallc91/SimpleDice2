@@ -80,7 +80,7 @@ function CallbackHandler:New(target, RegisterName, UnregisterName, UnregisterAll
 	-- Create the registry object
 	local events = setmetatable({}, meta)
 	local registry = { recurse=0, events=events }
-
+	
 	-- registry:Fire() - fires the given event/message into the registry
 	function registry:Fire(eventname, ...)
 		if not rawget(events, eventname) or not next(events[eventname]) then return end
@@ -235,4 +235,3 @@ end
 -- CallbackHandler purposefully does NOT do explicit embedding. Nor does it
 -- try to upgrade old implicit embeds since the system is selfcontained and
 -- relies on closures to work.
-
