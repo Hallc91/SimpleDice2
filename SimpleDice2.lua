@@ -37,7 +37,7 @@ function getSkillOptions()
                   name        = "Skill Modifier",
                   desc        = "The modifier for your Skill.",
                   type        = "input",
-                  set         = function(info, val) SD2.db.char.skill[i]["Modifier"] = tonumber(val); end,
+                  set         = function(info, val) if val == "" then val = 0 end; SD2.db.char.skill[i]["Modifier"] = tonumber(val); end,
                   get         = function(info) return tostring(SD2.db.char.skill[i]["Modifier"]); end,
                   width       = "half",
                   cmdHidden   = true,
@@ -48,7 +48,7 @@ function getSkillOptions()
                   name        = "Skill Damage",
                   desc        = "The damage for your Skill.",
                   type        = "input",
-                  set         = function(info, val) SD2.db.char.skill[i]["Damage"] = tonumber(val); end,
+                  set         = function(info, val) if val == "" then val = 0 end; SD2.db.char.skill[i]["Damage"] = tonumber(val); end,
                   get         = function(info) return tostring(SD2.db.char.skill[i]["Damage"]); end,
                   width       = "half",
                   cmdHidden   = true,
@@ -107,7 +107,7 @@ function getAttributeOptions()
             name        = "Attribute Modifier",
             desc        = "The modifier value for your attribute.",
             type        = "input",
-            set         = function(info, val) SD2.db.char.attribute[i]["Value"] = tonumber(val); end,
+            set         = function(info, val) if val == "" then val = 0 end  SD2.db.char.attribute[i]["Value"] = tonumber(val); end,
             get         = function(info) return tostring(SD2.db.char.attribute[i]["Value"]); end,
             width       = "half",
             cmdHidden   = true,
@@ -118,6 +118,23 @@ function getAttributeOptions()
 
       }
   end
+end
+
+local function getPassFail(Total)
+  local Outcome = ""
+  if SD2.db.char.roll["DC"] == 0 then return Outcome end
+  if Total >= SD2.db.char.roll["DC"] then Outcome = "Pass" end
+  if Total < SD2.db.char.roll["DC"] then Outcome = "Fail" end
+  return string.format("[%s on DC:%s] ",Outcome,SD2.db.char.roll["DC"]), Outcome
+end
+
+local function getDamage(damage,target,PF,totalRoll)
+	local totalDamage = damage
+  if PF == "Fail" or damage == 0 or target == "" then return "" end
+	if SD2.db.char.roll["DamageInc"] > 0 then
+		totalDamage = damage + ((totalRoll - SD2.db.char.roll["DC"])/SD2.db.char.roll["DamageInc"])*damage
+	end
+  return string.format("(%d damage%s)",totalDamage,target)
 end
 
 local function getTargetString()
@@ -136,29 +153,20 @@ local function formatAttribute(attribute)
   return "("..attribute..")"
 end
 
-local function formatRollOutput(roll, totalRoll, Skill, Attribute, Temp)
+local function formatRollOutput(roll, totalRoll, skill, attribute, temp)
 	if roll == totalRoll then return roll end
-	return string.format("%s%s%s%s=%s",roll,Skill,Attribute,Temp,totalRoll)
+	return string.format("%s%s%s%s=%s",roll,skill,attribute,temp,totalRoll)
 end
 
 local function formatOutputMessage(reCalc, skillName, abType, target, dcCheck, output, damage)
 	return string.format("%sRolling %s%s%s. %s(%s)%s",reCalc,skillName,abType,target,dcCheck,output,damage)
 end
 
-local function getPassFail(Total)
-  local Outcome = ""
-  if SD2.db.char.roll["DC"] == 0 then return Outcome end
-  if Total >= SD2.db.char.roll["DC"] then Outcome = "Pass" end
-  if Total < SD2.db.char.roll["DC"] then Outcome = "Fail" end
-  return string.format("[%s on DC:%s] ",Outcome,SD2.db.char.roll["DC"]), Outcome
-end
-
-local function getDamage(Damage,Target,PF)
-  if PF == "Fail" or Damage == 0 or Target == "" then return "" end
-  return string.format("(%d damage%s)",Damage,Target)
-end
-
 local function SendOutputMessage(Message)
+	if SD2.db.profile["Silent"] then
+		SELECTED_CHAT_FRAME:AddMessage(Message);
+		return;
+	end
 	if IsInRaid() then
 		SendChatMessage(Message, "RAID");
 		return;
@@ -199,7 +207,7 @@ local function skillCalculation(Skill)
   local Target = getTargetString()
   local TotalRoll = SD2.Roll + Modifier + AttribValue + Temp
   local Outcome, PF = getPassFail(TotalRoll)
-  local DamageText = getDamage(Damage,Target,PF)
+  local DamageText = getDamage(Damage,Target,PF,TotalRoll)
   local ModifierText = formatModifier(Modifier)
   local TempText = formatModifier(Temp)
   local AttribText = formatModifier(AttribValue)
@@ -209,11 +217,38 @@ local function skillCalculation(Skill)
   SendOutputMessage(OutputMessage)
 end
 
+local function disableButtons(type,status)
+	if type == "Skill" then
+		for i = 1,20 do
+			if SD2.db.char.skill[i]["Name"] ~= "" then
+			SD2.skillButton[i]:SetDisabled(status)
+			end
+		end
+	elseif type == "Attribute" then
+		for i = 2,9 do
+	    if SD2.db.char.attribute[i]["Name"] ~= "" then
+	      SD2.attributeButton[i]:SetDisabled(status)
+			end
+		end
+	end
+end
+
+local function getLatency()
+	local delay = 1
+	local bandwidthIn, bandwidthOut, latencyHome, latencyWorld = GetNetStats()
+	if latencyHome > latencyWorld then delay = delay + (latencyHome/1000) else delay = delay + (latencyWorld/1000) end
+	if SD2.db.profile["Latency"] then return delay + 1.5 end
+	return delay
+end
+
 local function rollClick(Type,Number)
+	SD2.Delay = getLatency()
+	disableButtons(Type,true)
   roll()
-  C_Timer.After(1.5, function()
+  C_Timer.After(SD2.Delay, function()
     if Type == "Skill" then skillCalculation(Number) end
     if Type == "Attribute" then attributeCalculation(Number) end
+		disableButtons(Type,false)
   end)
 end
 
@@ -273,27 +308,28 @@ local function statisticsGroup(container)
 end
 
 local function attributeGroup(container)
-  local attributeButton = {}
+  SD2.attributeButton = {}
   for i = 2,9 do
     if SD2.db.char.attribute[i]["Name"] ~= "" then
-      attributeButton[i] = SD2GUI:Create("Button")
-      attributeButton[i]:SetText(SD2.db.char.attribute[i]["Name"])
-      attributeButton[i]:SetWidth(120)
-      attributeButton[i]:SetCallback("OnClick", function() rollClick("Attribute",i) end)
-      container:AddChild(attributeButton[i])
+      SD2.attributeButton[i] = SD2GUI:Create("Button")
+      SD2.attributeButton[i]:SetText(SD2.db.char.attribute[i]["Name"])
+      SD2.attributeButton[i]:SetWidth(120)
+      SD2.attributeButton[i]:SetCallback("OnClick", function() rollClick("Attribute",i) end)
+      container:AddChild(SD2.attributeButton[i])
     end
   end
 end
 
+
 local function skillGroup(container)
-  local skillButton = {}
+  SD2.skillButton = {}
   for i = 1,20 do
     if SD2.db.char.skill[i]["Name"] ~= "" then
-      skillButton[i] = SD2GUI:Create("Button")
-      skillButton[i]:SetText(SD2.db.char.skill[i]["Name"])
-      skillButton[i]:SetWidth(120)
-      skillButton[i]:SetCallback("OnClick", function() rollClick("Skill",i) end)
-      container:AddChild(skillButton[i])
+      SD2.skillButton[i] = SD2GUI:Create("Button")
+      SD2.skillButton[i]:SetText(SD2.db.char.skill[i]["Name"])
+      SD2.skillButton[i]:SetWidth(120)
+      SD2.skillButton[i]:SetCallback("OnClick", function() rollClick("Skill",i) end)
+      container:AddChild(SD2.skillButton[i])
     end
   end
 end

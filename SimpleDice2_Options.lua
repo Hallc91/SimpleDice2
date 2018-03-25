@@ -189,6 +189,26 @@ SD2.Options = {
              order       = 5
            },
 
+           latency = {
+              name        = "High Latency Mode",
+              desc        = "Enable this if you're suffering from an abnormally high ping. (Typically over 1000)",
+              type        = "toggle",
+              set         = function(info, val) SD2.db.profile["Latency"] = val; end,
+              get         = function(info) return SD2.db.profile["Latency"]; end,
+              cmdHidden   = true,
+              order       = 6
+            },
+
+            silentmode = {
+               name        = "Silent Mode",
+               desc        = "The Output message will no longer be displayed in party/raid chat even when you're in a party.",
+               type        = "toggle",
+               set         = function(info, val) SD2.db.profile["Silent"] = val; end,
+               get         = function(info) return SD2.db.profile["Silent"]; end,
+               cmdHidden   = true,
+               order       = 7
+             },
+
       }
 
     }
@@ -198,6 +218,14 @@ SD2.Options = {
 }
 
 SD2.Preset = {
+
+  profile = {
+
+    ["Latency"] = false,
+    ["Silent"] = false,
+
+  },
+
   char = {
 
     minimap = {
@@ -246,6 +274,7 @@ for i = 2,9 do
   table.insert(SD2.Preset.char.attribute,i,attributetable)
 end
 
+SD2.Delay = 1
 SD2.Recalc = ""
 SD2.Roll = 0
 SD2.PlayerName = UnitName("Player")
