@@ -1,7 +1,3 @@
-SD2.AttributeDisable = false
-SD2.PSkillDisable = false
-SD2.SSkillDisable = false
-
 local rollFrame = CreateFrame("Frame")
 rollFrame:SetScript("OnEvent",function(self,event,...)
 	local arg1 = select(1,...)
@@ -362,30 +358,6 @@ local function disableButtons(type,value,status)
 			end
 		end
 	end
-end
-
-local function disableTabs()
-	local AttribCount = 0
-	local PSkillCount = 0
-	local SSkillCount = 0
-	for i = 1,9 do
-		if SD2.db.char.attribute[i]["Name"] ~= "" then
-			AttribCount = AttribCount + 1
-		end
-	end	
-	for i = 1,20 do
-		if SD2.db.char.skill[i]["Name"] ~= "" then
-			PSkillCount = PSkillCount + 1
-		end
-	end
-	for i = 21,40 do
-		if SD2.db.char.skill[i]["Name"] ~= "" then
-			SSkillCount = SSkillCount + 1
-		end
-	end
-	if AttribCount == 0 then SD2.AttributeDisable = true end
-	if PSkillCount == 0 then SD2.PSkillDisable = true end
-	if SSkillCount == 0 then SD2.SSkillDisable = true end
 end
 
 local function getLatency()
