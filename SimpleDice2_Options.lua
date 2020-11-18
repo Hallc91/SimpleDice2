@@ -1,5 +1,6 @@
-SD2.NumberTable = {"One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen","Twenty"}
-SD2.FullSkillTable = {skillheader = {name = "Skills",type = "header",order = 0},}
+SD2.NumberTable = {"One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen","Twenty","Twenty-One","Twenty-Two","Twenty-Three","Twenty-Four","Twenty-Five","Twenty-Six","Twenty-Seven","Twenty-Eight","Twenty-Nine","Thirty","Thirty-One","Thirty-Two","Thirty-Three","Thirty-Four","Thirty-Five","Thirty-Six","Thirty-Seven","Thirty-Eight","Thirty-Nine","Forty"}
+SD2.FirstSkillTable = {skillheader = {name = "Skills",type = "header",order = 0},}
+SD2.SecondSkillTable = {skillheader = {name = "Skills",type = "header",order = 0},}
 SD2.FullAttributeTable = {attributeheader = {name = "Attributes",type = "header",order = 0},}
 
 SD2.Options = {
@@ -92,11 +93,21 @@ SD2.Options = {
     skillconfig = {
 
       type        = "group",
-      name        = "Skill Settings",
+      name        = "Primary Skills",
       cmdHidden   = true,
       order       = 2,
       childGroups = "tree",
-      args        = SD2.FullSkillTable
+      args        = SD2.FirstSkillTable
+    },
+	
+	secondskillconfig = {
+
+      type        = "group",
+      name        = "Secondary Skills",
+      cmdHidden   = true,
+      order       = 3,
+      childGroups = "tree",
+      args        = SD2.SecondSkillTable
     },
 
     options = {
@@ -104,12 +115,12 @@ SD2.Options = {
       type        = "group",
       name        = "Options",
       cmdHidden   = true,
-      order       = 3,
+      order       = 4,
       childGroups = "tree",
       args        = {
 
         diceheader = {
-          name       = "Overall Dice Settings",
+          name       = "Roll Settings",
           type       = "header",
           order      = 0
         },
@@ -173,12 +184,25 @@ SD2.Options = {
 
         },
 
-          optheader = {
+        rolltype = {
+          name        = "Roll Type",
+          desc        = "",
+          type        = "select",
+          values      = {"Default","Minimum Skill"};
+          set         = function(info, val) SD2.db.char.roll["Type"] = val; end,
+          get         = function(info) return SD2.db.char.roll["Type"]; end,
+          width       = "0.75",
+          cmdHidden   = true,
+          order       = 4
+
+        },
+
+        optheader = {
             name       = "Options",
             type       = "header",
-            order      = 4
+            order      = 5
           },
-
+		  
           minimap = {
              name        = "Hide Minimap Button",
              desc        = "The upper value for your dice rolls.",
@@ -186,7 +210,7 @@ SD2.Options = {
              set         = function(info, val) SD2.db.char.minimap.hide = val; if val then SD2Icon:Hide("Simple Dice 2") else SD2Icon:Show("Simple Dice 2") end; end,
              get         = function(info) return SD2.db.char.minimap.hide; end,
              cmdHidden   = true,
-             order       = 5
+             order       = 6
            },
 
            latency = {
@@ -196,7 +220,7 @@ SD2.Options = {
               set         = function(info, val) SD2.db.profile["Latency"] = val; end,
               get         = function(info) return SD2.db.profile["Latency"]; end,
               cmdHidden   = true,
-              order       = 6
+              order       = 7
             },
 
             silentmode = {
@@ -206,8 +230,23 @@ SD2.Options = {
                set         = function(info, val) SD2.db.profile["Silent"] = val; end,
                get         = function(info) return SD2.db.profile["Silent"]; end,
                cmdHidden   = true,
-               order       = 7
+               order       = 8
              },
+
+             resetheader = {
+               name       = "Reset",
+               type       = "header",
+               order      = 9
+             },
+
+             reset = {
+                name        = "Reset Database",
+                desc        = "Will clear and reset all of your options across every character. NOTHING will be saved.",
+                type        = "execute",
+                func        = function() ResetSD2Profile() end,
+                cmdHidden   = true,
+                order       = 10
+              },
 
       }
 
@@ -238,7 +277,8 @@ SD2.Preset = {
       ["Temp"] = 0,
       ["Target"] = "",
       ["DamageInc"] = 0,
-      ["DC"] = 0
+      ["DC"] = 0,
+      ["Type"] = 1
     },
 
     attribute = {
@@ -253,8 +293,8 @@ SD2.Preset = {
     skill = {},
 
     statistics = {
-      ["HP"] = 0,
-      ["MaxHP"] = 0,
+      ["HP"] = 10,
+      ["MaxHP"] = 10,
       ["MP"] = 0,
       ["MaxMP"] = 0,
       ["Energy"] = 0,
@@ -265,9 +305,9 @@ SD2.Preset = {
   }
 
 }
-local skilltable = {["Name"] = "",["Attribute"] = 1,["Modifier"] = 0,["Damage"] = 0,}
+local skilltable = {["Name"] = "",["Attribute"] = 1,["Modifier"] = 0,["Damage"] = 0,["Def"] = false}
 local attributetable = {["Name"] = "",["Value"] = 0,}
-for i = 1,20 do
+for i = 1,40 do
   table.insert(SD2.Preset.char.skill,skilltable)
 end
 for i = 2,9 do

@@ -1,3 +1,8 @@
+local totalSkills = 20
+SD2.AttributeDisable = false
+SD2.PSkillDisable = false
+SD2.SSkillDisable = false
+
 local rollFrame = CreateFrame("Frame")
 rollFrame:SetScript("OnEvent",function(self,event,...)
 	local arg1 = select(1,...)
@@ -10,10 +15,17 @@ rollFrame:SetScript("OnEvent",function(self,event,...)
 end)
 rollFrame:RegisterEvent("CHAT_MSG_SYSTEM")
 
+
+local function getHighestValue(...)
+	local Values = {...}
+	table.sort(Values)
+	return Values[#Values]
+end
+
 function getSkillOptions()
   for i = 1,20 do
     local NumberText = SD2.NumberTable[i]
-    SD2.FullSkillTable[NumberText] = {
+    SD2.FirstSkillTable[NumberText] = {
               type        = "group",
               name        = "Skill "..NumberText,
               cmdHidden   = true,
@@ -34,7 +46,7 @@ function getSkillOptions()
                 },
 
                 skillmod = {
-                  name        = "Skill Modifier",
+                  name        = "Modifier",
                   desc        = "The modifier for your Skill.",
                   type        = "input",
                   set         = function(info, val) if val == "" then val = 0 end; SD2.db.char.skill[i]["Modifier"] = tonumber(val); end,
@@ -45,7 +57,7 @@ function getSkillOptions()
                 },
 
                 skilldamage = {
-                  name        = "Skill Damage",
+                  name        = "Damage",
                   desc        = "The damage for your Skill.",
                   type        = "input",
                   set         = function(info, val) if val == "" then val = 0 end; SD2.db.char.skill[i]["Damage"] = tonumber(val); end,
@@ -54,9 +66,9 @@ function getSkillOptions()
                   cmdHidden   = true,
                   order       = 2
                 },
-
+								
                 attributeselect = {
-                  name        = "Skill Attribute",
+                  name        = "Attribute",
                   desc        = "The attribute associated with this skill, set to none if your system doesn't use this.",
                   type        = "select",
                   values      = function() local AttribTable = {};
@@ -71,13 +83,100 @@ function getSkillOptions()
                   width       = "0.75",
                   cmdHidden   = true,
                   order       = 3
-
+                },
+				
+				skilldef = {
+                  name        = "Defensive",
+                  desc        = "Toggle on for damage calculations with defensive skills.",
+                  type        = "toggle",
+				  set         = function(info, val) SD2.db.char.skill[i]["Def"] = val; end,
+                  get         = function(info) return SD2.db.char.skill[i]["Def"]; end,
+                  cmdHidden   = true,
+                  order       = 4
                 }
 
               }
 
             }
   end
+  
+  for i = 21,40 do
+    local NumberText = SD2.NumberTable[i]
+    SD2.SecondSkillTable[NumberText] = {
+              type        = "group",
+              name        = "Skill "..NumberText,
+              cmdHidden   = true,
+              inline      = true,
+              order       = i,
+              childGroups = "tree",
+              args        = {
+
+                skillname = {
+                  name        = "Skill Name",
+                  desc        = "The name for your Skill.",
+                  type        = "input",
+                  set         = function(info, val) SD2.db.char.skill[i]["Name"] = val; end,
+                  get         = function(info) return SD2.db.char.skill[i]["Name"]; end,
+                  width       = "normal",
+                  cmdHidden   = true,
+                  order       = 0
+                },
+
+                skillmod = {
+                  name        = "Modifier",
+                  desc        = "The modifier for your Skill.",
+                  type        = "input",
+                  set         = function(info, val) if val == "" then val = 0 end; SD2.db.char.skill[i]["Modifier"] = tonumber(val); end,
+                  get         = function(info) return tostring(SD2.db.char.skill[i]["Modifier"]); end,
+                  width       = "half",
+                  cmdHidden   = true,
+                  order       = 1
+                },
+
+                skilldamage = {
+                  name        = "Damage",
+                  desc        = "The damage for your Skill.",
+                  type        = "input",
+                  set         = function(info, val) if val == "" then val = 0 end; SD2.db.char.skill[i]["Damage"] = tonumber(val); end,
+                  get         = function(info) return tostring(SD2.db.char.skill[i]["Damage"]); end,
+                  width       = "half",
+                  cmdHidden   = true,
+                  order       = 2
+                },
+								
+                attributeselect = {
+                  name        = "Attribute",
+                  desc        = "The attribute associated with this skill, set to none if your system doesn't use this.",
+                  type        = "select",
+                  values      = function() local AttribTable = {};
+                    for i = 1,#SD2.db.char.attribute do
+                      if SD2.db.char.attribute[i]["Name"] ~= ""
+                      then table.insert(AttribTable,SD2.db.char.attribute[i]["Name"]) end
+                    end;
+                    return AttribTable;
+                  end,
+                  set         = function(info, val) SD2.db.char.skill[i]["Attribute"] = val; end,
+                  get         = function(info) return SD2.db.char.skill[i]["Attribute"]; end,
+                  width       = "0.75",
+                  cmdHidden   = true,
+                  order       = 3
+                },
+				
+				skilldef = {
+                  name        = "Defensive",
+                  desc        = "Toggle on for damage calculations with defensive skills.",
+                  type        = "toggle",
+				  set         = function(info, val) SD2.db.char.skill[i]["Def"] = val; end,
+                  get         = function(info) return SD2.db.char.skill[i]["Def"]; end,
+                  cmdHidden   = true,
+                  order       = 4
+                }
+
+              }
+
+            }
+  end  
+  
 end
 
 function getAttributeOptions()
@@ -120,6 +219,7 @@ function getAttributeOptions()
   end
 end
 
+
 local function getPassFail(Total)
   local Outcome = ""
   if SD2.db.char.roll["DC"] == 0 then return Outcome end
@@ -128,13 +228,22 @@ local function getPassFail(Total)
   return string.format("[%s on DC:%s] ",Outcome,SD2.db.char.roll["DC"]), Outcome
 end
 
-local function getDamage(damage,target,PF,totalRoll)
+local function getDamage(damage,target,PF,totalRoll,Def)
 	local totalDamage = damage
-  if PF == "Fail" or damage == 0 or target == "" then return "" end
-	if SD2.db.char.roll["DamageInc"] > 0 then
-		totalDamage = damage + ((totalRoll - SD2.db.char.roll["DC"])/SD2.db.char.roll["DamageInc"])*damage
+	local doubleDamage = ""
+	if Def and PF == "Pass" then return "" end
+	if Def and PF == "Fail" then 
+		if SD2.db.char.roll["DamageInc"] > 0 then
+			totalDamage = math.ceil((SD2.db.char.roll["DC"] - totalRoll)/SD2.db.char.roll["DamageInc"])*damage
+		end
+		return string.format("(-%dHP)",totalDamage)
 	end
-  return string.format("(%d damage%s)",totalDamage,target)
+	if PF == "Fail" or damage == 0 or target == "" then return "" end
+	if SD2.db.char.roll["DamageInc"] > 0 then
+			totalDamage = damage + (math.floor((totalRoll - SD2.db.char.roll["DC"])/SD2.db.char.roll["DamageInc"]))*damage
+	end
+	if SD2.db.profile["DblDmg"] then totalDamage = totalDamage * 2; doubleDamage = "[Doubled Damage]" end
+	return string.format("(%d damage%s)%s",totalDamage,target,doubleDamage)
 end
 
 local function getTargetString()
@@ -188,6 +297,20 @@ local function roll()
   end
 end
 
+local function minSkillRoll(Type,Number)
+	local minRoll = SD2.db.char.roll["Low"]
+	if Type == "Skill" then print("1")
+	elseif Type == "Attribute" then print("2")
+	end
+	SD2.Recalc = ""
+	RandomRoll(minRoll, SD2.db.char.roll["High"])
+end
+
+local function rollChoice(Type,Number)
+	if SD2.db.char.roll["Type"] == 1 then roll() end
+	if SD2.db.char.roll["Type"] == 2 then minSkillRoll(Type,Number) end
+end
+
 local function attributeCalculation(Attribute)
   local AttribName, AttribValue, Temp = SD2.db.char.attribute[Attribute]["Name"], SD2.db.char.attribute[Attribute]["Value"], SD2.db.char.roll["Temp"]
   local Target = getTargetString()
@@ -203,11 +326,11 @@ end
 
 local function skillCalculation(Skill)
   local AttribName, AttribValue = SD2.db.char.attribute[SD2.db.char.skill[Skill]["Attribute"]]["Name"],SD2.db.char.attribute[SD2.db.char.skill[Skill]["Attribute"]]["Value"]
-  local Name, Modifier, Damage, Temp = SD2.db.char.skill[Skill]["Name"], SD2.db.char.skill[Skill]["Modifier"], SD2.db.char.skill[Skill]["Damage"], SD2.db.char.roll["Temp"]
+  local Name, Modifier, Damage, Def, Temp = SD2.db.char.skill[Skill]["Name"], SD2.db.char.skill[Skill]["Modifier"], SD2.db.char.skill[Skill]["Damage"], SD2.db.char.skill[Skill]["Def"], SD2.db.char.roll["Temp"]
   local Target = getTargetString()
   local TotalRoll = SD2.Roll + Modifier + AttribValue + Temp
   local Outcome, PF = getPassFail(TotalRoll)
-  local DamageText = getDamage(Damage,Target,PF,TotalRoll)
+  local DamageText = getDamage(Damage,Target,PF,TotalRoll,Def)
   local ModifierText = formatModifier(Modifier)
   local TempText = formatModifier(Temp)
   local AttribText = formatModifier(AttribValue)
@@ -217,11 +340,20 @@ local function skillCalculation(Skill)
   SendOutputMessage(OutputMessage)
 end
 
-local function disableButtons(type,status)
+local function disableButtons(type,value,status)
+	local value = tonumber(value)
 	if type == "Skill" then
-		for i = 1,20 do
-			if SD2.db.char.skill[i]["Name"] ~= "" then
-			SD2.skillButton[i]:SetDisabled(status)
+		if value <= 20 then
+			for i = 1,20 do
+				if SD2.db.char.skill[i]["Name"] ~= "" then
+				SD2.skillButton[i]:SetDisabled(status)
+				end
+			end
+		else
+			for i = 21,40 do
+				if SD2.db.char.skill[i]["Name"] ~= "" then
+				SD2.skillButton[i]:SetDisabled(status)
+				end
 			end
 		end
 	elseif type == "Attribute" then
@@ -231,6 +363,30 @@ local function disableButtons(type,status)
 			end
 		end
 	end
+end
+
+local function disableTabs()
+	local AttribCount = 0
+	local PSkillCount = 0
+	local SSkillCount = 0
+	for i = 1,9 do
+		if SD2.db.char.attribute[i]["Name"] ~= "" then
+			AttribCount = AttribCount + 1
+		end
+	end	
+	for i = 1,20 do
+		if SD2.db.char.skill[i]["Name"] ~= "" then
+			PSkillCount = PSkillCount + 1
+		end
+	end
+	for i = 21,40 do
+		if SD2.db.char.skill[i]["Name"] ~= "" then
+			SSkillCount = SSkillCount + 1
+		end
+	end
+	if AttribCount == 0 then SD2.AttributeDisable = true end
+	if PSkillCount == 0 then SD2.PSkillDisable = true end
+	if SSkillCount == 0 then SD2.SSkillDisable = true end
 end
 
 local function getLatency()
@@ -243,12 +399,12 @@ end
 
 local function rollClick(Type,Number)
 	SD2.Delay = getLatency()
-	disableButtons(Type,true)
-  roll()
+	disableButtons(Type,Number,true)
+  rollChoice(Type,Number)
   C_Timer.After(SD2.Delay, function()
     if Type == "Skill" then skillCalculation(Number) end
     if Type == "Attribute" then attributeCalculation(Number) end
-		disableButtons(Type,false)
+		disableButtons(Type,Number,false)
   end)
 end
 
@@ -313,7 +469,7 @@ local function attributeGroup(container)
     if SD2.db.char.attribute[i]["Name"] ~= "" then
       SD2.attributeButton[i] = SD2GUI:Create("Button")
       SD2.attributeButton[i]:SetText(SD2.db.char.attribute[i]["Name"])
-      SD2.attributeButton[i]:SetWidth(120)
+      SD2.attributeButton[i]:SetRelativeWidth(0.5)
       SD2.attributeButton[i]:SetCallback("OnClick", function() rollClick("Attribute",i) end)
       container:AddChild(SD2.attributeButton[i])
     end
@@ -327,7 +483,20 @@ local function skillGroup(container)
     if SD2.db.char.skill[i]["Name"] ~= "" then
       SD2.skillButton[i] = SD2GUI:Create("Button")
       SD2.skillButton[i]:SetText(SD2.db.char.skill[i]["Name"])
-      SD2.skillButton[i]:SetWidth(120)
+      SD2.skillButton[i]:SetRelativeWidth(0.5)
+      SD2.skillButton[i]:SetCallback("OnClick", function() rollClick("Skill",i) end)
+      container:AddChild(SD2.skillButton[i])
+    end
+  end
+end
+
+local function secondskillGroup(container)
+  SD2.skillButton = {}
+  for i = 21,40 do
+    if SD2.db.char.skill[i]["Name"] ~= "" then
+      SD2.skillButton[i] = SD2GUI:Create("Button")
+      SD2.skillButton[i]:SetText(SD2.db.char.skill[i]["Name"])
+      SD2.skillButton[i]:SetRelativeWidth(0.5)
       SD2.skillButton[i]:SetCallback("OnClick", function() rollClick("Skill",i) end)
       container:AddChild(SD2.skillButton[i])
     end
@@ -340,6 +509,8 @@ local function SelectGroup(container, event, group)
     attributeGroup(container)
   elseif group == "skill" then
     skillGroup(container)
+  elseif group == "secondskill" then
+    secondskillGroup(container)
   elseif group == "stats" then
     statisticsGroup(container)
   end
@@ -351,21 +522,29 @@ local function rollPanel()
     SD2.mainWindow = nil
   else
 
-    local mainHeight = 240
-    local count = 0
-    for i = 6,20 do
+    local mainHeight = 260
+    local primary = 0
+    local secondary = 0
+	local count = 0
+    for i = 7,20 do
       if SD2.db.char.skill[i]["Name"] ~= "" then
-        count = count + 1
+        primary = primary + 1
       end
     end
+	for i = 27,40 do
+      if SD2.db.char.skill[i]["Name"] ~= "" then
+        secondary = secondary + 1
+      end
+    end
+	local count = getHighestValue(primary,secondary)
     local totalCount = math.ceil(count/2)
     mainHeight = mainHeight + (totalCount * 26)
 
     SD2.mainWindow = SD2GUI:Create("Window")
-    SD2.mainWindow:SetTitle("Roll Window")
+    SD2.mainWindow:SetTitle("Simple Dice 2")
     SD2.mainWindow:SetCallback("OnClose", function(widget) SD2GUI:Release(widget) SD2.mainWindow = nil end)
     SD2.mainWindow:SetLayout("Flow")
-    SD2.mainWindow:SetWidth(290)
+    SD2.mainWindow:SetWidth(335)
     SD2.mainWindow:SetHeight(mainHeight)
     SD2.mainWindow:SetAutoAdjustHeight(true)
     SD2.mainWindow:EnableResize(false)
@@ -399,20 +578,29 @@ local function rollPanel()
     tempBox:DisableButton(true)
     tempBox:SetCallback("OnTextChanged", function(info, callback, val) if val == "" then val = 0 end; SD2.db.char.roll["Temp"] = tonumber(val) end)
     SD2.mainWindow:AddChild(tempBox)
+	
+	local doubleBox = SD2GUI:Create("CheckBox")
+    doubleBox:SetValue(SD2.db.profile["DblDmg"])
+    doubleBox:SetWidth(105)
+    doubleBox:SetLabel("Double Damage")
+    doubleBox:SetCallback("OnValueChanged", function(info, callback, val) SD2.db.profile["DblDmg"] = val; end)
+    SD2.mainWindow:AddChild(doubleBox)
 
     local skillWindow = SD2GUI:Create("SimpleGroup")
     skillWindow:SetLayout("Flow")
     skillWindow:SetFullWidth(true)
     skillWindow:SetFullHeight(true)
     SD2.mainWindow:AddChild(skillWindow)
-
+	
     local tab = SD2GUI:Create("TabGroup")
     tab:SetLayout("Flow")
     tab:SetFullWidth(true)
-    tab:SetTabs({{text="Statistics", value="stats"}, {text="Attributes", value="attrib"}, {text="Skills", value="skill"}})
+    tab:SetTabs({{text="Stats", value="stats"}, {text="Attributes", value="attrib"}, {text="P. Skills", value="skill"}, {text="S. Skills", value="secondskill"}})
     tab:SetCallback("OnGroupSelected", SelectGroup)
-    tab:SelectTab("skill")
+    tab:SelectTab("stats")
     skillWindow:AddChild(tab)
+
+
 
   end
 end
@@ -435,10 +623,13 @@ local SD2LDB = LibStub("LibDataBroker-1.1"):NewDataObject("Simple Dice 2", SD2.L
 function SD2:OnInitialize()
   -- Code that you want to run when the addon is first loaded goes here.
   self.db = LibStub("AceDB-3.0"):New("SD2DB", self.Preset);
-  getSkillOptions() getAttributeOptions()
+  getSkillOptions() getAttributeOptions();
   self.ConfigRegistry = LibStub("AceConfig-3.0"):RegisterOptionsTable("SD2", self.Options);
   self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SD2", "Simple Dice 2.0");
   SD2Icon:Register("Simple Dice 2", SD2LDB, self.db.char.minimap);
+	function ResetSD2Profile()
+		self.db:ResetDB();
+	end
 end
 
 function SD2:OnEnable()
@@ -450,3 +641,5 @@ function SD2:OnDisable()
 end
 
 SD2:RegisterChatCommand("SimpleDice",rollPanel)
+SD2:RegisterChatCommand("SD",rollPanel)
+SD2:RegisterChatCommand("SD2",rollPanel)
