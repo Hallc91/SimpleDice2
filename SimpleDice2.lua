@@ -1,4 +1,3 @@
-local totalSkills = 20
 SD2.AttributeDisable = false
 SD2.PSkillDisable = false
 SD2.SSkillDisable = false
