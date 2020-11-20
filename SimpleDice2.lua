@@ -10,7 +10,6 @@ rollFrame:SetScript("OnEvent",function(self,event,...)
 end)
 rollFrame:RegisterEvent("CHAT_MSG_SYSTEM")
 
-
 local function getHighestValue(...)
 	local Values = {...}
 	table.sort(Values)
