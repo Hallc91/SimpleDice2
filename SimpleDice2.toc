@@ -1,8 +1,11 @@
 ## Interface: 90002
-## Version: 1.1.2
+## Version: 1.1.3
 ## Title: Simple Dice 2
 ## Authors: Hallc
 ## SavedVariables: SD2DB
+
+## X-Curse-Project-ID: 290528
+## X-WoWI-ID: 25781
 
 embeds.xml
 
