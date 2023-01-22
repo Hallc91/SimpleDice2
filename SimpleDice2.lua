@@ -494,19 +494,22 @@ local function rollPanel()
 
     local mainHeight = 260
     local primary = 0
-    local secondary = 0
-	local count = 0
-    for i = 7,20 do
-      if SD2.db.char.skill[i]["Name"] ~= "" then
-        primary = primary + 1
+    local secondary = -7
+  	local count = 0
+    local SSkillsEnable = true
+      for i = 7,20 do
+        if SD2.db.char.skill[i]["Name"] ~= "" then
+          primary = primary + 1
+        end
       end
-    end
-	for i = 27,40 do
-      if SD2.db.char.skill[i]["Name"] ~= "" then
-        secondary = secondary + 1
+      for i = 20,40 do
+        if SD2.db.char.skill[i]["Name"] ~= "" then
+          secondary = secondary + 1
+          SSkillsEnable = false 
+        end
       end
-    end
-	local count = getHighestValue(primary,secondary)
+
+  	local count = getHighestValue(primary,secondary)
     local totalCount = math.ceil(count/2)
     mainHeight = mainHeight + (totalCount * 26)
 
@@ -549,7 +552,7 @@ local function rollPanel()
     tempBox:SetCallback("OnTextChanged", function(info, callback, val) if val == "" then val = 0 end; SD2.db.char.roll["Temp"] = tonumber(val) end)
     SD2.mainWindow:AddChild(tempBox)
 	
-	local doubleBox = SD2GUI:Create("CheckBox")
+    local doubleBox = SD2GUI:Create("CheckBox")
     doubleBox:SetValue(SD2.db.profile["DblDmg"])
     doubleBox:SetWidth(105)
     doubleBox:SetLabel("Double Damage")
@@ -565,12 +568,10 @@ local function rollPanel()
     local tab = SD2GUI:Create("TabGroup")
     tab:SetLayout("Flow")
     tab:SetFullWidth(true)
-    tab:SetTabs({{text="Stats", value="stats"}, {text="Attributes", value="attrib"}, {text="P. Skills", value="skill"}, {text="S. Skills", value="secondskill"}})
+    tab:SetTabs({{text="Stats", value="stats"}, {text="Attributes", value="attrib"}, {text="P. Skills", value="skill"}, {text="S. Skills", value="secondskill", disabled=SSkillsEnable}})
     tab:SetCallback("OnGroupSelected", SelectGroup)
     tab:SelectTab("stats")
     skillWindow:AddChild(tab)
-
-
 
   end
 end

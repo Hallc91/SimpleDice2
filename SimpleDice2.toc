@@ -1,7 +1,5 @@
 ## Interface: 100002
 ## Version: 1.2
-## Interface: 90002
-## Version: 1.1.3
 ## Title: Simple Dice 2
 ## Authors: Hallc
 ## SavedVariables: SD2DB
