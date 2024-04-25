@@ -127,8 +127,8 @@ SD2.Options = {
 
         dicelow = {
 
-          name        = "Lower Roll Range",
-          desc        = "The lower value for your dice rolls.",
+          name        = "Lower Skill Roll Range",
+          desc        = "The lower value for your skill dice rolls.",
           type        = "range",
           min         = 1,
           max         = 100,
@@ -149,8 +149,8 @@ SD2.Options = {
 
         dicehigh = {
 
-          name        = "Upper Roll Range",
-          desc        = "The upper value for your dice rolls.",
+          name        = "Upper Skill Roll Range",
+          desc        = "The upper value for your skill dice rolls.",
           type        = "range",
           min         = 1,
           max         = 100,
@@ -169,6 +169,50 @@ SD2.Options = {
 
         },
 
+        attdicelow = {
+
+          name        = "Lower Attribute Roll Range",
+          desc        = "The lower value for your attribute dice rolls.",
+          type        = "range",
+          min         = 1,
+          max         = 100,
+          softMin     = 1,
+          softMax     = 100,
+          step        = 1,
+          set         = function(info, val)
+            if val >= SD2.db.char.roll["AttributeHigh"]
+            then SD2.db.char.roll["AttributeLow"] = SD2.db.char.roll["AttributeHigh"] - 1
+            else SD2.db.char.roll["AttributeLow"] = val
+            end;
+          end,
+          get         = function(info) return SD2.db.char.roll["AttributeLow"]; end,
+          cmdHidden   = true,
+          order       = 4
+
+        },
+
+        attdicehigh = {
+
+          name        = "Upper Attribute Roll Range",
+          desc        = "The upper value for your attribute dice rolls.",
+          type        = "range",
+          min         = 1,
+          max         = 100,
+          softMin     = 1,
+          softMax     = 100,
+          step        = 1,
+          set         = function(info, val)
+            if val <= SD2.db.char.roll["AttributeLow"]
+            then SD2.db.char.roll["AttributeHigh"] = SD2.db.char.roll["AttributeLow"] + 1
+            else SD2.db.char.roll["AttributeHigh"] = val
+            end;
+          end,
+          get         = function(info) return SD2.db.char.roll["AttributeHigh"]; end,
+          cmdHidden   = true,
+          order       = 5
+
+        },
+
         dmginc = {
 
           name        = "Damage Increment",
@@ -184,6 +228,35 @@ SD2.Options = {
 
         },
 
+        desc = {
+
+          name        = " ",
+          type        = "description",
+          order       = 6
+        },
+
+        critsuccess = {
+           name        = "Critical Success",
+           desc        = "Enable critical successes. If your roll is equal to the highest value possible a critical success will be announced. Will also automatically double listed damage.",
+           type        = "toggle",
+           set         = function(info, val) SD2.db.profile["CritSuccess"] = val; end,
+           get         = function(info) return SD2.db.profile["CritSuccess"]; end,
+           cmdHidden   = true,
+           order       = 7
+
+         },
+
+        critfail = {
+           name        = "Critical Failures",
+           desc        = "Enable critical failures. If your roll is equal to the lowest possible value a critical fail will be announced.",
+           type        = "toggle",
+           set         = function(info, val) SD2.db.profile["CritFail"] = val; end,
+           get         = function(info) return SD2.db.profile["CritFail"]; end,
+           cmdHidden   = true,
+           order       = 8
+
+         },
+
         rolltype = {
           name        = "Roll Type",
           desc        = "",
@@ -193,24 +266,24 @@ SD2.Options = {
           get         = function(info) return SD2.db.char.roll["Type"]; end,
           width       = "0.75",
           cmdHidden   = true,
-          order       = 4
+          order       = 9
 
         },
 
         optheader = {
             name       = "Options",
             type       = "header",
-            order      = 5
+            order      = 10
           },
 		  
           minimap = {
              name        = "Hide Minimap Button",
-             desc        = "The upper value for your dice rolls.",
+             desc        = "Hide or show the Minimap Button",
              type        = "toggle",
              set         = function(info, val) SD2.db.char.minimap.hide = val; if val then SD2Icon:Hide("Simple Dice 2") else SD2Icon:Show("Simple Dice 2") end; end,
              get         = function(info) return SD2.db.char.minimap.hide; end,
              cmdHidden   = true,
-             order       = 6
+             order       = 11
            },
 
            latency = {
@@ -220,7 +293,7 @@ SD2.Options = {
               set         = function(info, val) SD2.db.profile["Latency"] = val; end,
               get         = function(info) return SD2.db.profile["Latency"]; end,
               cmdHidden   = true,
-              order       = 7
+              order       = 12
             },
 
             silentmode = {
@@ -230,13 +303,13 @@ SD2.Options = {
                set         = function(info, val) SD2.db.profile["Silent"] = val; end,
                get         = function(info) return SD2.db.profile["Silent"]; end,
                cmdHidden   = true,
-               order       = 8
+               order       = 13
              },
 
              resetheader = {
                name       = "Reset",
                type       = "header",
-               order      = 9
+               order      = 14
              },
 
              reset = {
@@ -245,8 +318,40 @@ SD2.Options = {
                 type        = "execute",
                 func        = function() ResetSD2Profile() end,
                 cmdHidden   = true,
-                order       = 10
+                order       = 15
               },
+
+--[[              import = {
+                name        = "Import",
+                desc        = "Used to Import a profile from another copy of Simple Dice 2.\nWill overwrite ALL Attributes and Skills.",
+                type        = "input",
+                multiline   = true,
+                set         = function(info,val) ImportSD2Profile(info) end,
+                cmdHidden   = true,
+                order       = 10,
+              },
+
+              export = {
+                name        = "Export",
+                desc        = "Exports all currently set Attribute and Skill names to be imported into another copy of Simple Dice 2.\nWill NOT export Modifier Values.",
+                type        = "execute",
+                func        = function() ExportSD2Profile() end,
+                cmdHidden   = true,
+                order       = 11,
+              },
+
+              profile = {
+                name        = "Profile",
+                desc        = "",
+                type        = "select",
+                values      = function() return SD2.db:GetProfiles() end,
+                set         = function(info, val) SD2.db:SetProfile(info); end,
+                get         = function(info) return SD2.db:GetCurrentProfile(); end,
+                width       = "0.75",
+                cmdHidden   = true,
+                order       = 13,
+
+              }--]]
 
       }
 
@@ -268,12 +373,14 @@ SD2.Preset = {
   char = {
 
     minimap = {
-      hide = false,
+      hide = true,
     },
 
     roll = {
       ["Low"] = 1,
       ["High"] = 100,
+      ["AttributeLow"] = 1,
+      ["AttributeHigh"] = 100,
       ["Temp"] = 0,
       ["Target"] = "",
       ["DamageInc"] = 0,
@@ -305,7 +412,7 @@ SD2.Preset = {
   }
 
 }
-local skilltable = {["Name"] = "",["Attribute"] = 1,["Modifier"] = 0,["Damage"] = 0,["Def"] = false}
+local skilltable = {["Name"] = "",["Attribute"] = 1,["Modifier"] = 0,["Damage"] = 0,["Def"] = false,["Heal"] = false}
 local attributetable = {["Name"] = "",["Value"] = 0,}
 for i = 1,40 do
   table.insert(SD2.Preset.char.skill,skilltable)

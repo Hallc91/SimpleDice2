@@ -1,9 +1,10 @@
-## Interface: 100002
-## Version: 1.2
+## Interface: 100206
+## Version: 1.3
 ## Title: Simple Dice 2
 ## Authors: Hallc
 ## SavedVariables: SD2DB
-
+## AddonCompartmentFunc: SD2_OnAddonCompartmentClick
+## IconTexture: Interface\Icons\INV_Misc_Dice_01.blp
 ## X-Curse-Project-ID: 290528
 ## X-WoWI-ID: 25781
 
