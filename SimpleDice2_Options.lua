@@ -110,12 +110,281 @@ SD2.Options = {
       args        = SD2.SecondSkillTable
     },
 
-    options = {
+  rollsettings = {
+
+      type        = "group",
+      name        = "Custom Roll Settings",
+      cmdHidden   = true,
+      order       = 4,
+      childGroups = "tree",
+      args        = {
+
+        rollheader1 = {
+          name       = "Custom Roll One",
+          type       = "header",
+          order      = 0
+        },
+
+        rollcustom1_low = {
+
+          name        = "Lower Roll Range",
+          desc        = "The lower value for your skill dice rolls.",
+          type        = "range",
+          min         = 1,
+          max         = 100,
+          softMin     = 1,
+          softMax     = 100,
+          step        = 1,
+          set         = function(info, val)
+            if val >= SD2.db.char.roll.custom1["High"]
+            then SD2.db.char.roll.custom1["Low"] = SD2.db.char.roll.custom1["High"] - 1
+            else SD2.db.char.roll.custom1["Low"] = val
+            end;
+          end,
+          get         = function(info) return SD2.db.char.roll.custom1["Low"]; end,
+          cmdHidden   = true,
+          order       = 1
+
+        },
+
+        rollcustom1_high = {
+
+          name        = "Upper Roll Range",
+          desc        = "The upper value for your skill dice rolls.",
+          type        = "range",
+          min         = 1,
+          max         = 100,
+          softMin     = 1,
+          softMax     = 100,
+          step        = 1,
+          set         = function(info, val)
+            if val <= SD2.db.char.roll.custom1["Low"]
+            then SD2.db.char.roll.custom1["High"] = SD2.db.char.roll.custom1["Low"] + 1
+            else SD2.db.char.roll.custom1["High"] = val
+            end;
+          end,
+          get         = function(info) return SD2.db.char.roll.custom1["High"]; end,
+          cmdHidden   = true,
+          order       = 2
+
+        },
+
+        rollheader2 = {
+          name       = "Custom Roll Two",
+          type       = "header",
+          order      = 3
+        },
+
+        rollcustom2_low = {
+
+          name        = "Lower Roll Range",
+          desc        = "The lower value for your skill dice rolls.",
+          type        = "range",
+          min         = 1,
+          max         = 100,
+          softMin     = 1,
+          softMax     = 100,
+          step        = 1,
+          set         = function(info, val)
+            if val >= SD2.db.char.roll.custom2["High"]
+            then SD2.db.char.roll.custom2["Low"] = SD2.db.char.roll.custom2["High"] - 1
+            else SD2.db.char.roll.custom2["Low"] = val
+            end;
+          end,
+          get         = function(info) return SD2.db.char.roll.custom2["Low"]; end,
+          cmdHidden   = true,
+          order       = 4
+
+        },
+
+        rollcustom2_high = {
+
+          name        = "Upper Roll Range",
+          desc        = "The upper value for your skill dice rolls.",
+          type        = "range",
+          min         = 1,
+          max         = 100,
+          softMin     = 1,
+          softMax     = 100,
+          step        = 1,
+          set         = function(info, val)
+            if val <= SD2.db.char.roll.custom2["Low"]
+            then SD2.db.char.roll.custom2["High"] = SD2.db.char.roll.custom2["Low"] + 1
+            else SD2.db.char.roll.custom2["High"] = val
+            end;
+          end,
+          get         = function(info) return SD2.db.char.roll.custom2["High"]; end,
+          cmdHidden   = true,
+          order       = 5
+
+        },
+
+        rollheader3 = {
+          name       = "Custom Roll Three",
+          type       = "header",
+          order      = 6
+        },
+
+        rollcustom3_low = {
+
+          name        = "Lower Roll Range",
+          desc        = "The lower value for your skill dice rolls.",
+          type        = "range",
+          min         = 1,
+          max         = 100,
+          softMin     = 1,
+          softMax     = 100,
+          step        = 1,
+          set         = function(info, val)
+            if val >= SD2.db.char.roll.custom3["High"]
+            then SD2.db.char.roll.custom3["Low"] = SD2.db.char.roll.custom3["High"] - 1
+            else SD2.db.char.roll.custom3["Low"] = val
+            end;
+          end,
+          get         = function(info) return SD2.db.char.roll.custom3["Low"]; end,
+          cmdHidden   = true,
+          order       = 7
+        },
+
+        rollcustom3_high = {
+
+          name        = "Upper Roll Range",
+          desc        = "The upper value for your skill dice rolls.",
+          type        = "range",
+          min         = 1,
+          max         = 100,
+          softMin     = 1,
+          softMax     = 100,
+          step        = 1,
+          set         = function(info, val)
+            if val <= SD2.db.char.roll.custom3["Low"]
+            then SD2.db.char.roll.custom3["High"] = SD2.db.char.roll.custom3["Low"] + 1
+            else SD2.db.char.roll.custom3["High"] = val
+            end;
+          end,
+          get         = function(info) return SD2.db.char.roll.custom3["High"]; end,
+          cmdHidden   = true,
+          order       = 8
+
+        },
+
+        rollheader4 = {
+          name       = "Custom Roll Four",
+          type       = "header",
+          order      = 9
+        },
+
+        rollcustom4_low = {
+
+          name        = "Lower Roll Range",
+          desc        = "The lower value for your skill dice rolls.",
+          type        = "range",
+          min         = 1,
+          max         = 100,
+          softMin     = 1,
+          softMax     = 100,
+          step        = 1,
+          set         = function(info, val)
+            if val >= SD2.db.char.roll.custom4["High"]
+            then SD2.db.char.roll.custom4["Low"] = SD2.db.char.roll.custom4["High"] - 1
+            else SD2.db.char.roll.custom4["Low"] = val
+            end;
+          end,
+          get         = function(info) return SD2.db.char.roll.custom4["Low"]; end,
+          cmdHidden   = true,
+          order       = 10
+
+        },
+
+        rollcustom4_high = {
+
+          name        = "Upper Roll Range",
+          desc        = "The upper value for your skill dice rolls.",
+          type        = "range",
+          min         = 1,
+          max         = 100,
+          softMin     = 1,
+          softMax     = 100,
+          step        = 1,
+          set         = function(info, val)
+            if val <= SD2.db.char.roll.custom4["Low"]
+            then SD2.db.char.roll.custom4["High"] = SD2.db.char.roll.custom4["Low"] + 1
+            else SD2.db.char.roll.custom4["High"] = val
+            end;
+          end,
+          get         = function(info) return SD2.db.char.roll.custom4["High"]; end,
+          cmdHidden   = true,
+          order       = 11
+
+        },
+
+        rollheader5 = {
+          name       = "Custom Roll Five",
+          type       = "header",
+          order      = 12
+        },
+
+        rollcustom5_low = {
+
+          name        = "Lower Roll Range",
+          desc        = "The lower value for your skill dice rolls.",
+          type        = "range",
+          min         = 1,
+          max         = 100,
+          softMin     = 1,
+          softMax     = 100,
+          step        = 1,
+          set         = function(info, val)
+            if val >= SD2.db.char.roll.custom5["High"]
+            then SD2.db.char.roll.custom5["Low"] = SD2.db.char.roll.custom5["High"] - 1
+            else SD2.db.char.roll.custom5["Low"] = val
+            end;
+          end,
+          get         = function(info) return SD2.db.char.roll.custom5["Low"]; end,
+          cmdHidden   = true,
+          order       = 13
+
+        },
+
+        rollcustom5_high = {
+
+          name        = "Upper Roll Range",
+          desc        = "The upper value for your skill dice rolls.",
+          type        = "range",
+          min         = 1,
+          max         = 100,
+          softMin     = 1,
+          softMax     = 100,
+          step        = 1,
+          set         = function(info, val)
+            if val <= SD2.db.char.roll.custom5["Low"]
+            then SD2.db.char.roll.custom5["High"] = SD2.db.char.roll.custom5["Low"] + 1
+            else SD2.db.char.roll.custom5["High"] = val
+            end;
+          end,
+          get         = function(info) return SD2.db.char.roll.custom5["High"]; end,
+          cmdHidden   = true,
+          order       = 14
+
+        },
+
+
+        rolldescription = {
+          name       = "There are also a range of defaults already coded in. These are: D4, D5, D6, D10, D12, D15, D20, D100",
+          type       = "description",
+          fontSize   = "large",
+          order      = 15
+        },
+
+      },
+    },
+
+  options = {
 
       type        = "group",
       name        = "Options",
       cmdHidden   = true,
-      order       = 4,
+      order       = 5,
       childGroups = "tree",
       args        = {
 
@@ -385,7 +654,27 @@ SD2.Preset = {
       ["Target"] = "",
       ["DamageInc"] = 0,
       ["DC"] = 0,
-      ["Type"] = 1
+      ["Type"] = 1,
+      custom1 = {
+        ["Low"] = 1,
+        ["High"] = 100,
+      },
+      custom2 = {
+        ["Low"] = 1,
+        ["High"] = 100,
+      },
+      custom3 = {
+        ["Low"] = 1,
+        ["High"] = 100,
+      },
+      custom4 = {
+        ["Low"] = 1,
+        ["High"] = 100,
+      },
+      custom5 = {
+        ["Low"] = 1,
+        ["High"] = 100,
+      },
     },
 
     attribute = {
@@ -412,14 +701,17 @@ SD2.Preset = {
   }
 
 }
-local skilltable = {["Name"] = "",["Attribute"] = 1,["Modifier"] = 0,["Damage"] = 0,["Def"] = false,["Heal"] = false}
-local attributetable = {["Name"] = "",["Value"] = 0,}
+local skilltable = {["Name"] = "",["Attribute"] = 1,["Modifier"] = 0,["Damage"] = 0,["Def"] = false,["Heal"] = false,["RollType"] = 1,}
+local attributetable = {["Name"] = "",["Value"] = 0,["RollType"] = 1,}
 for i = 1,40 do
   table.insert(SD2.Preset.char.skill,skilltable)
 end
 for i = 2,9 do
   table.insert(SD2.Preset.char.attribute,i,attributetable)
 end
+
+local testvar1 = "yes"
+
 
 SD2.Delay = 1
 SD2.Recalc = ""

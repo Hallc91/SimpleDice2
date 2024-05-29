@@ -5,8 +5,9 @@ rollFrame:SetScript("OnEvent",function(self,event,...)
 		local name,roll,minRoll,maxRoll = arg1:match("^(.+) "..SD2.LocaleTable[SD2.Locale]["Rolls"].." (%d+) %((%d+)%-(%d+)%)$")
     minRoll = tonumber(minRoll)
     maxRoll = tonumber(maxRoll)
-    if maxRoll == SD2.db.char.roll["High"] and minRoll == SD2.db.char.roll["Low"] and name == SD2.PlayerName then SD2.Roll = tonumber(roll) end
-    if maxRoll == SD2.db.char.roll["AttributeHigh"] and minRoll == SD2.db.char.roll["AttributeLow"] and name == SD2.PlayerName then SD2.Roll = tonumber(roll) end
+    --if maxRoll == SD2.db.char.roll["High"] and minRoll == SD2.db.char.roll["Low"] and name == SD2.PlayerName then SD2.Roll = tonumber(roll) end
+    --if maxRoll == SD2.db.char.roll["AttributeHigh"] and minRoll == SD2.db.char.roll["AttributeLow"] and name == SD2.PlayerName then SD2.Roll = tonumber(roll) end
+    if name == SD2.PlayerName then SD2.Roll = tonumber(roll) end
 	end
 end)
 rollFrame:RegisterEvent("CHAT_MSG_SYSTEM")
@@ -16,6 +17,8 @@ local function getHighestValue(...)
 	table.sort(Values)
 	return Values[#Values]
 end
+
+local rollChoice = {"Default","D4","D5","D6","D10","D12","D15","D20","D100","Custom 1","Custom 2","Custom 3","Custom 4","Custom 5"}
 
 function getSkillOptions()
   for i = 1,20 do
@@ -87,8 +90,20 @@ function getSkillOptions()
   				          set         = function(info, val) SD2.db.char.skill[i]["Def"] = val; end,
                     get         = function(info) return SD2.db.char.skill[i]["Def"]; end,
                     cmdHidden   = true,
-                    order       = 4
+                    order       = 5
                   },
+
+                rollselect = {
+                    name        = "Roll Type",
+                    desc        = "The type of roll associated with this skill. It defaults to those set in the options tab.",
+                    type        = "select",
+                    values      = rollChoice,
+                    set         = function(info, val) SD2.db.char.skill[i]["RollType"] = val; end,
+                    get         = function(info) return SD2.db.char.skill[i]["RollType"]; end,
+                    width       = "half",
+                    cmdHidden   = true,
+                    order       = 4
+                },
 
 
               }
@@ -158,15 +173,27 @@ function getSkillOptions()
                   order       = 3
                 },
 				
-        				skilldef = {
+                skilldef = {
                     name        = "Defensive",
                     desc        = "Toggle on for damage calculations with defensive skills.",
                     type        = "toggle",
-  				          set         = function(info, val) SD2.db.char.skill[i]["Def"] = val; end,
+                    set         = function(info, val) SD2.db.char.skill[i]["Def"] = val; end,
                     get         = function(info) return SD2.db.char.skill[i]["Def"]; end,
                     cmdHidden   = true,
+                    order       = 5
+                  },
+
+                rollselect = {
+                    name        = "Roll Type",
+                    desc        = "The type of roll associated with this skill. It defaults to those set in the options tab.",
+                    type        = "select",
+                    values      = rollChoice,
+                    set         = function(info, val) SD2.db.char.skill[i]["RollType"] = val; end,
+                    get         = function(info) return SD2.db.char.skill[i]["RollType"]; end,
+                    width       = "half",
+                    cmdHidden   = true,
                     order       = 4
-                  }
+                },
 
                 }
 
@@ -207,7 +234,19 @@ function getAttributeOptions()
             width       = "half",
             cmdHidden   = true,
             order       = 1
-          }
+          },
+
+          rollselect = {
+                    name        = "Roll Type",
+                    desc        = "The type of roll associated with this attribute. It defaults to those set in the options tab.",
+                    type        = "select",
+                    values      = rollChoice,
+                    set         = function(info, val) SD2.db.char.attribute[i]["RollType"] = val; end,
+                    get         = function(info) return SD2.db.char.attribute[i]["RollType"]; end,
+                    width       = "half",
+                    cmdHidden   = true,
+                    order       = 4
+                },
 
         }
 
@@ -215,6 +254,106 @@ function getAttributeOptions()
   end
 end
 
+
+local function getRollType(Skill)
+  local RollUpper = 100
+  local RollLower = 1
+  local Type = SD2.db.char.skill[Skill]["RollType"]
+  if Type == 1 then
+    RollUpper = SD2.db.char.roll["High"]   
+    RollLower = SD2.db.char.roll["Low"]      
+  elseif Type == 2 then
+    RollUpper = 4
+    RollLower = 1
+  elseif Type == 3 then
+    RollUpper = 5
+    RollLower = 1    
+  elseif Type == 4 then
+    RollUpper = 6
+    RollLower = 1  
+  elseif Type == 5 then
+    RollUpper = 10
+    RollLower = 1  
+  elseif Type == 6 then
+    RollUpper = 12
+    RollLower = 1  
+  elseif Type == 7 then
+    RollUpper = 15
+    RollLower = 1  
+  elseif Type == 8 then
+    RollUpper = 20
+    RollLower = 1  
+  elseif Type == 9 then
+    RollUpper = 100
+    RollLower = 1  
+  elseif Type == 10 then
+    RollUpper = SD2.db.char.roll.custom1["High"]
+    RollLower = SD2.db.char.roll.custom1["Low"]  
+  elseif Type == 11 then
+    RollUpper = SD2.db.char.roll.custom2["High"]
+    RollLower = SD2.db.char.roll.custom2["Low"]  
+  elseif Type == 12 then
+    RollUpper = SD2.db.char.roll.custom3["High"]
+    RollLower = SD2.db.char.roll.custom3["Low"]  
+  elseif Type == 13 then
+    RollUpper = SD2.db.char.roll.custom4["High"]
+    RollLower = SD2.db.char.roll.custom4["Low"]  
+  elseif Type == 13 then
+    RollUpper = SD2.db.char.roll.custom5["High"]
+    RollLower = SD2.db.char.roll.custom5["Low"]  
+  end
+  return RollUpper,RollLower
+end
+
+local function getAttributeRollType(Skill)
+  local RollUpper = 100
+  local RollLower = 1
+  local Type = SD2.db.char.attribute[Skill]["RollType"]
+  if Type == 1 then
+    RollUpper = SD2.db.char.roll["AttributeHigh"]  
+    RollLower = SD2.db.char.roll["AttributeLow"]     
+  elseif Type == 2 then
+    RollUpper = 4
+    RollLower = 1
+  elseif Type == 3 then
+    RollUpper = 5
+    RollLower = 1    
+  elseif Type == 4 then
+    RollUpper = 6
+    RollLower = 1  
+  elseif Type == 5 then
+    RollUpper = 10
+    RollLower = 1  
+  elseif Type == 6 then
+    RollUpper = 12
+    RollLower = 1  
+  elseif Type == 7 then
+    RollUpper = 15
+    RollLower = 1  
+  elseif Type == 8 then
+    RollUpper = 20
+    RollLower = 1  
+  elseif Type == 9 then
+    RollUpper = 100
+    RollLower = 1  
+  elseif Type == 10 then
+    RollUpper = SD2.db.char.roll.custom1["High"]
+    RollLower = SD2.db.char.roll.custom1["Low"]  
+  elseif Type == 11 then
+    RollUpper = SD2.db.char.roll.custom2["High"]
+    RollLower = SD2.db.char.roll.custom2["Low"]  
+  elseif Type == 12 then
+    RollUpper = SD2.db.char.roll.custom3["High"]
+    RollLower = SD2.db.char.roll.custom3["Low"]  
+  elseif Type == 13 then
+    RollUpper = SD2.db.char.roll.custom4["High"]
+    RollLower = SD2.db.char.roll.custom4["Low"]  
+  elseif Type == 13 then
+    RollUpper = SD2.db.char.roll.custom5["High"]
+    RollLower = SD2.db.char.roll.custom5["Low"]  
+  end
+  return RollUpper,RollLower
+end
 
 local function getPassFail(Total)
   local Outcome = ""
@@ -288,15 +427,19 @@ local function SendOutputMessage(Message)
 end
 
 local function roll(Type,Number)
+  local RollUpper = SD2.db.char.roll["High"]
+  local RollLower = SD2.db.char.roll["Low"]
   if IsModifierKeyDown() then
     SD2.Recalc = "[ReCalc]"
     SD2.Roll = SD2.Roll
   else
     SD2.Recalc = ""
     if Type == "Attribute" then
-      RandomRoll(SD2.db.char.roll["AttributeLow"], SD2.db.char.roll["AttributeHigh"])
+      local RollUpper,RollLower = getAttributeRollType(Number)
+      RandomRoll(RollLower, RollUpper)
     else 
-      RandomRoll(SD2.db.char.roll["Low"], SD2.db.char.roll["High"])
+      local RollUpper,RollLower = getRollType(Number)
+      RandomRoll(RollLower, RollUpper)
     end
   end
 end
@@ -315,20 +458,22 @@ local function rollChoice(Type,Number)
 	if SD2.db.char.roll["Type"] == 2 then roll(Type,Number) end
 end
 
-local function attribCriticalCheck(Roll,Attribute,Temp)
+local function attribCriticalCheck(Roll,AttribValue,Temp,Attribute)
   local Crit = false
   local CritType = ""
-  if Roll == SD2.db.char.roll["High"] and SD2.db.profile["CritSuccess"] == true then Crit = true; CritType = "[Critical Success!]" return Roll, Crit, CritType end
-  if Roll == SD2.db.char.roll["Low"] and SD2.db.profile["CritFail"] == true then Crit = true; CritType = "[Critical Failure!]" return Roll, Crit, CritType end
-  local Total = Roll + Attribute + Temp
+  local RollUpper,RollLower = getAttributeRollType(Attribute)   
+  if Roll == RollUpper and SD2.db.profile["CritSuccess"] == true then Crit = true; CritType = "[Critical Success!]" return Roll, Crit, CritType end
+  if Roll == RollLower and SD2.db.profile["CritFail"] == true then Crit = true; CritType = "[Critical Failure!]" return Roll, Crit, CritType end
+  local Total = Roll + AttribValue + Temp
   return Total, Crit, CritType
 end
 
-local function skillCriticalCheck(Roll,Modifier,Attribute,Temp)
+local function skillCriticalCheck(Roll,Modifier,Attribute,Temp,Skill)
   local Crit = false
   local CritType = ""
-  if Roll == SD2.db.char.roll["High"] and SD2.db.profile["CritSuccess"] == true then Crit = true; CritType = "[Critical Success!]" return Roll, Crit, CritType end
-  if Roll == SD2.db.char.roll["Low"] and SD2.db.profile["CritFail"] == true then Crit = true; CritType = "[Critical Failure!]" return Roll, Crit, CritType end
+  local RollUpper,RollLower = getRollType(Skill)  
+  if Roll == RollUpper and SD2.db.profile["CritSuccess"] == true then Crit = true; CritType = "[Critical Success!]" return Roll, Crit, CritType end
+  if Roll == RollLower and SD2.db.profile["CritFail"] == true then Crit = true; CritType = "[Critical Failure!]" return Roll, Crit, CritType end
   local Total = Roll + Modifier + Attribute + Temp
   return Total, Crit, CritType
 end
@@ -337,7 +482,7 @@ end
 local function attributeCalculation(Attribute)
   local AttribName, AttribValue, Temp = SD2.db.char.attribute[Attribute]["Name"], SD2.db.char.attribute[Attribute]["Value"], SD2.db.char.roll["Temp"]
   local Target = getTargetString()
-  local TotalRoll, Crit, CritType = attribCriticalCheck(SD2.Roll,AttribValue,Temp)
+  local TotalRoll, Crit, CritType = attribCriticalCheck(SD2.Roll,AttribValue,Temp,Attribute)
   local Outcome = getPassFail(TotalRoll)
   local TempText = formatModifier(Temp)
   local AttribText = formatModifier(AttribValue)
@@ -351,7 +496,7 @@ local function skillCalculation(Skill)
   local AttribName, AttribValue = SD2.db.char.attribute[SD2.db.char.skill[Skill]["Attribute"]]["Name"],SD2.db.char.attribute[SD2.db.char.skill[Skill]["Attribute"]]["Value"]
   local Name, Modifier, Damage, Def, Temp = SD2.db.char.skill[Skill]["Name"], SD2.db.char.skill[Skill]["Modifier"], SD2.db.char.skill[Skill]["Damage"], SD2.db.char.skill[Skill]["Def"], SD2.db.char.roll["Temp"]
   local Target = getTargetString()
-  local TotalRoll, Crit, CritType = skillCriticalCheck(SD2.Roll,Modifier,AttribValue,Temp)
+  local TotalRoll, Crit, CritType = skillCriticalCheck(SD2.Roll,Modifier,AttribValue,Temp,Skill)
   local Outcome, PF = getPassFail(TotalRoll)
   local DamageText = getDamage(Damage,Target,PF,TotalRoll,Def,Crit)
   local ModifierText = formatModifier(Modifier)
