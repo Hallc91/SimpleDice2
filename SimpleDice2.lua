@@ -12,6 +12,21 @@ rollFrame:SetScript("OnEvent",function(self,event,...)
 end)
 rollFrame:RegisterEvent("CHAT_MSG_SYSTEM")
 
+
+local classIcons = {
+  ["Warrior"] = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:0:0:0:0:256:256:0:64:0:64|t",
+  ["Mage"] = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:0:0:0:0:256:256:64:128:0:64|t",
+  ["Rogue"] = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:0:0:0:0:256:256:128:196:0:64|t",
+  ["Druid"] = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:0:0:0:0:256:256:196:256:0:64|t",
+  ["Hunter"] = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:0:0:0:0:256:256:0:64:64:128|t",
+  ["Shaman"] = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:0:0:0:0:256:256:64:128:64:128|t",
+  ["Priest"] = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:0:0:0:0:256:256:128:196:64:128|t",
+  ["Warlock"] = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:0:0:0:0:256:256:196:256:64:128|t",
+  ["Paladin"] = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:0:0:0:0:256:256:0:64:128:196|t",
+}
+
+local raidIcons = {"None","Skull","Cross","Square","Moon","Triangle","Diamond","Circle","Star"}
+
 local function getHighestValue(...)
 	local Values = {...}
 	table.sort(Values)
@@ -383,8 +398,14 @@ local function getDamage(damage,target,PF,totalRoll,Def,Crit)
 end
 
 local function getTargetString()
-	if SD2.db.char.roll["Target"] == "" then return "" end
-	return " on "..SD2.db.char.roll["Target"]
+  local icon = SD2.db.char.roll["Icon"]
+	if SD2.db.char.roll["Target"] == "" and SD2.db.char.roll["Icon"] == 1 then return "" 
+  elseif SD2.db.char.roll["Target"] ~= "" and SD2.db.char.roll["Icon"] == 1 then return " on "..SD2.db.char.roll["Target"]
+  elseif SD2.db.char.roll["Target"] == "" and SD2.db.char.roll["Icon"] > 1 then return " on {"..raidIcons[icon].."}"
+  elseif SD2.db.char.roll["Target"] ~= "" and SD2.db.char.roll["Icon"] > 1 then return " on {"..raidIcons[icon].."} "..SD2.db.char.roll["Target"]
+  end
+  return ""
+	
 end
 
 local function formatModifier(modifier)
@@ -456,6 +477,7 @@ end
 local function rollChoice(Type,Number)
 	if SD2.db.char.roll["Type"] == 1 then roll(Type,Number) end
 	if SD2.db.char.roll["Type"] == 2 then roll(Type,Number) end
+  if SD2.db.char.roll["Type"] == 3 then roll(Type,Number) end
 end
 
 local function attribCriticalCheck(Roll,AttribValue,Temp,Attribute)
@@ -499,6 +521,62 @@ local function skillCalculation(Skill)
   local TotalRoll, Crit, CritType = skillCriticalCheck(SD2.Roll,Modifier,AttribValue,Temp,Skill)
   local Outcome, PF = getPassFail(TotalRoll)
   local DamageText = getDamage(Damage,Target,PF,TotalRoll,Def,Crit)
+  local ModifierText = formatModifier(Modifier)
+  local TempText = formatModifier(Temp)
+  local AttribText = formatModifier(AttribValue)
+  local AttribType = formatAttribute(AttribName)
+  local OutputRoll = formatRollOutput(SD2.Roll, TotalRoll, ModifierText, AttribText, TempText)
+  local OutputMessage = formatOutputMessage(SD2.Recalc,Name,AttribType,Target,Outcome,OutputRoll,DamageText,Crit,CritType)
+  SendOutputMessage(OutputMessage)
+end
+
+
+local function getIscariPassFail(Total,Def,Crit)
+  local Outcome = ""
+  --if SD2.db.char.roll["DC"] == 0 then return Outcome end
+  if Def then
+    if Total == 1 and Crit then Outcome = "Natural 1! [Special Event!]"
+    elseif Total == 20 and Crit then Outcome = "Natural 20! [Special Event!]"
+    elseif Total <= 5 then Outcome = "Rolled "..Total..". Fail (-6HP)."
+    elseif Total <= 10 then Outcome = "Rolled "..Total..". Fail (-2HP)."
+    elseif Total <= 16 then Outcome = "Rolled "..Total..". Pass (No Damage)."
+    elseif Total >= 17 then Outcome = "Rolled "..Total..". Pass. (Counter 1 Damage or Save Someone)"
+    end
+  else
+    if Total == 1 and Crit then Outcome = "Natural 1! [Special Event!]"
+    elseif Total == 20 and Crit then Outcome = "Natural 20! [Special Event!]"
+    elseif Total <= 5 then Outcome = "Rolled "..Total..". Fail (Miss)."
+    elseif Total <= 10 then Outcome = "Rolled "..Total..". Pass (1 Damage/2HP Heal)."
+    elseif Total <= 16 then Outcome = "Rolled "..Total..". Pass (3 Damage/5HP Heal)."
+    elseif Total >= 17 then Outcome = "Rolled "..Total..". Pass. (5 Damage/8HP Heal)"
+    end
+  end
+  return Outcome
+  --if Total >= SD2.db.char.roll["DC"] then Outcome = "Pass" end
+  --if Total < SD2.db.char.roll["DC"] then Outcome = "Fail" end
+  --return string.format("[%s on DC:%s] ",Outcome,SD2.db.char.roll["DC"]), Outcome
+end
+
+local function iscariaAttributeCalculation(Attribute)
+  local AttribName, AttribValue, Temp = SD2.db.char.attribute[Attribute]["Name"], SD2.db.char.attribute[Attribute]["Value"], SD2.db.char.roll["Temp"]
+  local Target = getTargetString()
+  local TotalRoll, Crit, CritType = attribCriticalCheck(SD2.Roll,AttribValue,Temp,Attribute)
+  local Outcome = getIscariPassFail(TotalRoll,Def,Crit)
+  local TempText = formatModifier(Temp)
+  local AttribText = formatModifier(AttribValue)
+  local AttribType = formatAttribute(AttribName)
+  local OutputRoll = formatRollOutput(SD2.Roll, TotalRoll, "", AttribText, TempText)
+  local OutputMessage = formatOutputMessage(SD2.Recalc,AttribName,"",Target,Outcome,OutputRoll,"",Crit,CritType)
+  SendOutputMessage(OutputMessage)
+end
+
+local function iscariaSkillCalculation(Skill)
+  local AttribName, AttribValue = SD2.db.char.attribute[SD2.db.char.skill[Skill]["Attribute"]]["Name"],SD2.db.char.attribute[SD2.db.char.skill[Skill]["Attribute"]]["Value"]
+  local Name, Modifier, Damage, Def, Temp = SD2.db.char.skill[Skill]["Name"], SD2.db.char.skill[Skill]["Modifier"], SD2.db.char.skill[Skill]["Damage"], SD2.db.char.skill[Skill]["Def"], SD2.db.char.roll["Temp"]
+  local Target = getTargetString()
+  local TotalRoll, Crit, CritType = skillCriticalCheck(SD2.Roll,Modifier,AttribValue,Temp,Skill)
+  local Outcome, PF = getIscariPassFail(TotalRoll,Def,Crit)
+  local DamageText = ""
   local ModifierText = formatModifier(Modifier)
   local TempText = formatModifier(Temp)
   local AttribText = formatModifier(AttribValue)
@@ -595,6 +673,9 @@ local function rollClick(Type,Number)
     elseif SD2.db.char.roll["Type"] == 2 then
       if Type == "Skill" then minimumSkillCalculation(Number) end
       if Type == "Attribute" then minimumAttributeCalculation(Number) end
+    elseif SD2.db.char.roll["Type"] == 3 then
+      if Type == "Skill" then iscariaSkillCalculation(Number) end
+      if Type == "Attribute" then iscariaAttributeCalculation(Number) end
     end
 		disableButtons(Type,Number,false)
   end)
@@ -745,7 +826,7 @@ local function rollPanel()
     SD2.mainWindow:SetTitle("Simple Dice 2")
     SD2.mainWindow:SetCallback("OnClose", function(widget) SD2GUI:Release(widget) SD2.mainWindow = nil end)
     SD2.mainWindow:SetLayout("Flow")
-    SD2.mainWindow:SetWidth(335)
+    SD2.mainWindow:SetWidth(340)
     SD2.mainWindow:SetHeight(mainHeight)
     SD2.mainWindow:SetAutoAdjustHeight(true)
     SD2.mainWindow:EnableResize(false)
@@ -754,11 +835,21 @@ local function rollPanel()
     SD2.escapeFrame:EnableKeyboard(true)
     SD2.escapeFrame:SetFrameStrata("DIALOG")
     SD2.escapeFrame:SetPropagateKeyboardInput(true)
-    SD2.escapeFrame:SetScript("OnKeyDown", function(self, key) if key == "ESCAPE" and SD2.mainWindow then SD2.mainWindow:Hide() SD2.mainWindow = nil end end)
+    SD2.escapeFrame:SetScript("OnKeyDown", function(self, key) if key == "ESCAPE" and SD2.mainWindow and SD2.db.profile["Escape"] then SD2.mainWindow:Hide() SD2.mainWindow = nil end end)
+
+    local targetIcon = SD2GUI:Create("Dropdown")
+    --targetIcon:SetText(SD2.db.char.roll["Icon"])
+    targetIcon:SetList({"None","Skull","Cross","Square","Moon","Triangle","Diamond","Circle","Star"})
+    targetIcon:SetValue(SD2.db.char.roll["Icon"])
+    targetIcon:SetWidth(70)
+    targetIcon:SetLabel("Icon:")
+    --targetIcon:DisableButton(true)
+    targetIcon:SetCallback("OnValueChanged", function(info, callback, val) if val == "" then val = 0 end; SD2.db.char.roll["Icon"] = tonumber(val); end)
+    SD2.mainWindow:AddChild(targetIcon)
 
     local targetBox = SD2GUI:Create("EditBox")
     targetBox:SetText(SD2.db.char.roll["Target"])
-    targetBox:SetWidth(140)
+    targetBox:SetWidth(130)
     targetBox:SetLabel("Target:")
     targetBox:DisableButton(true)
     targetBox:SetCallback("OnTextChanged", function(info, callback, val) SD2.db.char.roll["Target"] = val end)

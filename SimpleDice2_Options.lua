@@ -530,7 +530,7 @@ SD2.Options = {
           name        = "Roll Type",
           desc        = "",
           type        = "select",
-          values      = {"Default","Minimum Skill"};
+          values      = {"Default","Minimum Skill","Iscaria"};
           set         = function(info, val) SD2.db.char.roll["Type"] = val; end,
           get         = function(info) return SD2.db.char.roll["Type"]; end,
           width       = "0.75",
@@ -575,10 +575,20 @@ SD2.Options = {
                order       = 13
              },
 
+            escape = {
+               name        = "Obey Escape Button",
+               desc        = "If disabled the addon will no longer vanish from your screen when escape is pressed. (Not Recommended)",
+               type        = "toggle",
+               set         = function(info, val) SD2.db.profile["Escape"] = val; end,
+               get         = function(info) return SD2.db.profile["Escape"]; end,
+               cmdHidden   = true,
+               order       = 13
+             },
+
              resetheader = {
                name       = "Reset",
                type       = "header",
-               order      = 14
+               order      = 15
              },
 
              reset = {
@@ -587,7 +597,7 @@ SD2.Options = {
                 type        = "execute",
                 func        = function() ResetSD2Profile() end,
                 cmdHidden   = true,
-                order       = 15
+                order       = 17
               },
 
 --[[              import = {
@@ -636,6 +646,7 @@ SD2.Preset = {
 
     ["Latency"] = false,
     ["Silent"] = false,
+    ["Escape"] = true,
 
   },
 
@@ -654,6 +665,7 @@ SD2.Preset = {
       ["Target"] = "",
       ["DamageInc"] = 0,
       ["DC"] = 0,
+      ["Icon"] = 1,
       ["Type"] = 1,
       custom1 = {
         ["Low"] = 1,
