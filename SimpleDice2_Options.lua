@@ -718,7 +718,7 @@ local attributetable = {["Name"] = "",["Value"] = 0,["RollType"] = 1,}
 for i = 1,40 do
   table.insert(SD2.Preset.char.skill,skilltable)
 end
-for i = 2,9 do
+for i = 2,17 do
   table.insert(SD2.Preset.char.attribute,i,attributetable)
 end
 

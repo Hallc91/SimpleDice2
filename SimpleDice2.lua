@@ -218,7 +218,7 @@ function getSkillOptions()
 end
 
 function getAttributeOptions()
-  for i = 2,9 do
+  for i = 2,17 do
     local NumberText = SD2.NumberTable[i-1]
     SD2.FullAttributeTable[NumberText] = {
         type        = "group",
@@ -738,7 +738,7 @@ end
 
 local function attributeGroup(container)
   SD2.attributeButton = {}
-  for i = 2,9 do
+  for i = 2,17 do
     if SD2.db.char.attribute[i]["Name"] ~= "" then
       SD2.attributeButton[i] = SD2GUI:Create("Button")
       SD2.attributeButton[i]:SetText(SD2.db.char.attribute[i]["Name"])
@@ -801,7 +801,7 @@ local function rollPanel()
     local attribute = 0
   	local count = 0
     local SSkillsEnable = true
-      for i = 7,8 do
+      for i = 7,17 do
         if SD2.db.char.attribute[i]["Name"] ~= "" then
           attribute = attribute + 1
         end
@@ -901,7 +901,8 @@ SD2.LDBTable = {
 	icon = "Interface\\Icons\\INV_Misc_Dice_01",
 	OnClick = function(self, button)
     if button == "RightButton" then
-      InterfaceOptionsFrame_OpenToCategory("Simple Dice 2.0")
+      --InterfaceOptionsFrame_OpenToCategory("Simple Dice 2.0")
+      Settings.OpenToCategory("Simple Dice 2.0")
     else
       rollPanel()
     end
