@@ -1,5 +1,5 @@
-## Interface: 100207
-## Version: 1.6
+## Interface: 110002
+## Version: 1.7.1
 ## Title: Simple Dice 2
 ## Authors: Hallc
 ## SavedVariables: SD2DB
